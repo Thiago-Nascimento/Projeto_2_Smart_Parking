@@ -8,7 +8,9 @@ LiquidCrystal lcd(9, 8, 5, 4, 3, 6);
 
 long lastReconnectAttempt = 0;
 
-int vagas = 10;
+int vagas;
+
+byte vagas1[10];
 
 char payload = 0;
 char topic = 0;
@@ -115,33 +117,32 @@ void callback(char* topic, byte* payload, unsigned int length)
   int msgRecebida = payloadAsChar.toInt();
 
   //int topic1 = (int)topic;
-  
-//  Serial.print("Topico: ");
-//  Serial.println(topic[5]);
-//
-//  Serial.print("Topico lenth: ");
-//  Serial.println(sizeof(topic1));
-//  
-//  Serial.print("Topico2: ");
-//  Serial.println(topic1);
 
-  Serial.print("Mensagem: ");
-  Serial.println(msgRecebida);
-  Serial.println();
-  Serial.println(topic);
+  vagas1[topic[5]] = msgRecebida;
+
+    Serial.print("Código Vagas ");
+    Serial.print(topic[5]);
+    Serial.println("codigo msg ");
+    Serial.println(vagas1[topic[5]]);  
+
+//  for (int i=0; i<10 ; i++)
+//  {
+//    Serial.print("Código Vagas ");
+//    Serial.println(i);
+//    Serial.print("msg ");
+//    Serial.println(vagas1[i]);
+//     
+//  }
+  
+
   delay(100);
   feedback(5);  // Recebendo Mensagem
   
-  if (vagas >= 0 && vagas <= 10)
-  {  
+
     if (msgRecebida == 1) 
     {
       Serial.println("OCUPADO");
       vagas--;
-      if (vagas > 10)
-      {
-          
-      }
       displayLcd();
     }
 
@@ -151,7 +152,6 @@ void callback(char* topic, byte* payload, unsigned int length)
       vagas++;
       displayLcd();
     }
-  }
 
   Serial.flush();
 
@@ -165,6 +165,7 @@ boolean reconnect()
   if (client.connect("arduino", "rodolfo", "rodolfo"))
   {
     client.subscribe("vaga/#");
+    //client.publish("vaga/1", "conectado");
   }
   feedback(3);  // Conectado
   Serial.println("Conectado MQTT");
