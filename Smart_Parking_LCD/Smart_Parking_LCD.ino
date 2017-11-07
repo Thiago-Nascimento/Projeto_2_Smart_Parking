@@ -8,14 +8,14 @@ LiquidCrystal lcd(9, 8, 5, 4, 3, 6);
 
 long lastReconnectAttempt = 0;
 
-int vagas;
+int vagas = 10;
 
-byte vagas1[10];
+byte vagas1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 char payload = 0;
 char topic = 0;
 
-char payloadAsChar; 
+char payloadAsChar;
 
 int ledVerde = A0;
 int ledAmarelo = A1;
@@ -28,7 +28,7 @@ void callback(char* topic, byte* payload, unsigned int length); // Callback func
 
 EthernetClient ethClient;
 
-PubSubClient client("m10.cloudmqtt.com", 13038, callback, ethClient); // Dados do MQTT Cloud
+PubSubClient client("m10.cloudmqtt.com", 13038 , callback, ethClient); // Dados do MQTT Cloud
 
 
 void acendeLed(int acende, int apaga1, int apaga2)
@@ -98,60 +98,80 @@ void feedback(char msg)
   }
 }
 
-void displayLcd() 
-{  
+void displayLcd()
+{
   lcd.setCursor(8, 1);
   lcd.print("        ");
   lcd.setCursor(8, 1);
-  lcd.print(vagas);
-  
+  lcd.println(vagas);
+
   Serial.print("Ocupadas: ");
-  Serial.println(10 - vagas);  
+  Serial.println(10 - vagas);
 }
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-  //payloadAsChar[length] = 0;
-  String payloadAsChar = payload;
-
-  int msgRecebida = payloadAsChar.toInt();
+  int msgRecebida = payload[0] - '0';
+  //  //payloadAsChar[length] = 0;
+  //  String payloadAsChar = payload;
+  //
+  //  int msgRecebida = payloadAsChar.toInt();
 
   //int topic1 = (int)topic;
 
-  vagas1[topic[5]] = msgRecebida;
 
+  vagas1[topic[5] - '0' - 1] = msgRecebida;
+
+  //  Serial.print("Vaga: ");
+  //  Serial.println(topic[5]);
+  //  Serial.println(topic[5]-1);
+  //  Serial.print("Mensagem: ");
+  //  Serial.println(msgRecebida);
+  //  Serial.println(vagas1[0]);
+
+  //  Serial.print("Código Vagas ");
+  //  Serial.println("2 ");
+  //  Serial.print("codigo msg ");
+  //  Serial.println(vagas1[1]);
+  //
+  //  Serial.print("Código Vagas ");
+  //  Serial.println("3 ");
+  //  Serial.print("codigo msg ");
+  //  Serial.println(vagas1[2]);
+  //
+  //  Serial.print("Código Vagas ");
+  //  Serial.println("4 ");
+  //  Serial.print("codigo msg ");
+  //  Serial.println(vagas1[3]);
+
+
+  for (int i = 0; i < 10 ; i++)
+  {
     Serial.print("Código Vagas ");
-    Serial.print(topic[5]);
-    Serial.println("codigo msg ");
-    Serial.println(vagas1[topic[5]]);  
+    Serial.println(i);
+    Serial.print("msg ");
+    Serial.println(vagas1[i]);
 
-//  for (int i=0; i<10 ; i++)
-//  {
-//    Serial.print("Código Vagas ");
-//    Serial.println(i);
-//    Serial.print("msg ");
-//    Serial.println(vagas1[i]);
-//     
-//  }
-  
+  }
+
 
   delay(100);
   feedback(5);  // Recebendo Mensagem
-  
 
-    if (msgRecebida == 1) 
-    {
-      Serial.println("OCUPADO");
-      vagas--;
-      displayLcd();
-    }
 
-    if (msgRecebida == 0) 
-    {
-      Serial.println("VAZIO");
-      vagas++;
-      displayLcd();
-    }
+  if (msgRecebida == 1)
+  {
+    //Serial.println("OCUPADO");
+    vagas--;
+    displayLcd();
+  }
+
+  if (msgRecebida == 0)
+  {
+    //Serial.println("VAZIO");
+    vagas++;
+    displayLcd();
+  }
 
   Serial.flush();
 
@@ -178,26 +198,33 @@ void setup()
 
   Serial.begin(9600);
   Serial.println("Iniciando...");
-  
+
+//  callback('vaga/1', 0, 10);
+//  delay(500);
+//  callback('vaga/2', 1, 10);
+//  delay(500);
+//  callback('vaga/3', 1, 10);
+//  delay(500);
+
   lcd.begin(16, 2); //Inicializa LCD
   lcd.clear();     //Limpa o LCD
 
   lcd.setCursor(0, 0);
-  lcd.print("VAGAS:  10");  
+  lcd.print("VAGAS:  10");
   lcd.setCursor(0, 1);
   lcd.print("LIVRES: ");
   lcd.setCursor(8, 1);
-  lcd.print(10);  
-  
+  lcd.print(10);
+
   delay(50);
   feedback(2);
   Ethernet.begin(mac);
-  
-  if (!Ethernet.begin(mac)) 
+
+  if (!Ethernet.begin(mac))
   {
     Serial.println("DHCP Failed");
-  } 
-  
+  }
+
   else
   {
     Serial.println(Ethernet.localIP());
