@@ -9,8 +9,9 @@ LiquidCrystal lcd(9, 8, 5, 4, 3, 6);
 long lastReconnectAttempt = 0;
 
 int vagas = 10;
+const int TOTAL_VAGAS = 10;
 
-byte vagas1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+byte vagas1[TOTAL_VAGAS];
 
 char payload = 0;
 char topic = 0;
@@ -98,80 +99,19 @@ void feedback(char msg)
   }
 }
 
-void displayLcd()
-{
-  lcd.setCursor(8, 1);
-  lcd.print("        ");
-  lcd.setCursor(8, 1);
-  lcd.println(vagas);
-
-  Serial.print("Ocupadas: ");
-  Serial.println(10 - vagas);
-}
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
   int msgRecebida = payload[0] - '0';
-  //  //payloadAsChar[length] = 0;
-  //  String payloadAsChar = payload;
-  //
-  //  int msgRecebida = payloadAsChar.toInt();
-
-  //int topic1 = (int)topic;
 
 
   vagas1[topic[5] - '0' - 1] = msgRecebida;
 
-  //  Serial.print("Vaga: ");
-  //  Serial.println(topic[5]);
-  //  Serial.println(topic[5]-1);
-  //  Serial.print("Mensagem: ");
-  //  Serial.println(msgRecebida);
-  //  Serial.println(vagas1[0]);
-
-  //  Serial.print("Código Vagas ");
-  //  Serial.println("2 ");
-  //  Serial.print("codigo msg ");
-  //  Serial.println(vagas1[1]);
-  //
-  //  Serial.print("Código Vagas ");
-  //  Serial.println("3 ");
-  //  Serial.print("codigo msg ");
-  //  Serial.println(vagas1[2]);
-  //
-  //  Serial.print("Código Vagas ");
-  //  Serial.println("4 ");
-  //  Serial.print("codigo msg ");
-  //  Serial.println(vagas1[3]);
-
-
-  for (int i = 0; i < 10 ; i++)
-  {
-    Serial.print("Código Vagas ");
-    Serial.println(i);
-    Serial.print("msg ");
-    Serial.println(vagas1[i]);
-
-  }
-
+  vagas_serial();
+  displayLcd();
 
   delay(100);
   feedback(5);  // Recebendo Mensagem
-
-
-  if (msgRecebida == 1)
-  {
-    //Serial.println("OCUPADO");
-    vagas--;
-    displayLcd();
-  }
-
-  if (msgRecebida == 0)
-  {
-    //Serial.println("VAZIO");
-    vagas++;
-    displayLcd();
-  }
 
   Serial.flush();
 
@@ -199,13 +139,6 @@ void setup()
   Serial.begin(9600);
   Serial.println("Iniciando...");
 
-//  callback('vaga/1', 0, 10);
-//  delay(500);
-//  callback('vaga/2', 1, 10);
-//  delay(500);
-//  callback('vaga/3', 1, 10);
-//  delay(500);
-
   lcd.begin(16, 2); //Inicializa LCD
   lcd.clear();     //Limpa o LCD
 
@@ -214,7 +147,7 @@ void setup()
   lcd.setCursor(0, 1);
   lcd.print("LIVRES: ");
   lcd.setCursor(8, 1);
-  lcd.print(10);
+  lcd.print(vagas);
 
   delay(50);
   feedback(2);
@@ -274,3 +207,41 @@ void loop()
     client.loop();
   }
 }
+
+/////////////////////////////////////////////FUNÇOES/////////////////////////////////////////////////
+
+void displayLcd()
+{
+  int contagem = contarOcupadas();
+  lcd.setCursor(8, 1);
+  lcd.print("        ");
+  lcd.setCursor(8, 1);
+  lcd.print(TOTAL_VAGAS - contagem );
+
+}
+
+int contarOcupadas()
+{
+  int ocupadas = 0;
+  for (int i = 0; i < TOTAL_VAGAS; i++) {
+    // ocupadas += vagas[i];
+    if(vagas1[i]) {
+      ocupadas++;
+    }
+  }
+  return ocupadas;
+}
+
+void vagas_serial()
+{
+  //Serial.println(vagas1[topic[5] - '0' - 1]);
+  int contagem = contarOcupadas();
+  for (int i = 0; i < TOTAL_VAGAS; i++) {
+    Serial.print(vagas1[i]);
+  }
+  Serial.println();
+  Serial.print("ocupadas: ");
+  Serial.println(contagem);
+  Serial.print("livres ");
+  Serial.println(TOTAL_VAGAS - contagem);
+  }
